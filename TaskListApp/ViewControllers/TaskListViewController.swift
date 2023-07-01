@@ -6,15 +6,13 @@
 //
 
 import UIKit
-import CoreData
-
 
 final class TaskListViewController: UITableViewController {
     
     private let cellID = "task"
     private var taskList: [Task] = []
     
-    private let viewContext = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    private let viewContext = StorageManager.shared.persistentContainer.viewContext
 
     override func viewDidLoad() {
         super.viewDidLoad()
