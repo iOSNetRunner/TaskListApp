@@ -12,7 +12,7 @@ final class StorageManager {
     
     var taskList: [Task] = []
     var persistentContainer: NSPersistentContainer = {
-    
+        
         let container = NSPersistentContainer(name: "TaskListApp")
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
             if let error = error as NSError? {
@@ -34,7 +34,7 @@ final class StorageManager {
         let fetchRequest = Task.fetchRequest()
         
         do {
-           taskList = try context.fetch(fetchRequest)
+            taskList = try context.fetch(fetchRequest)
         } catch {
             
         }
