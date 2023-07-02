@@ -14,13 +14,11 @@ final class TaskListViewController: UITableViewController {
     private let storageManager = StorageManager.shared
     private let viewContext = StorageManager.shared.persistentContainer.viewContext
     private var selectedIndex: Int!
-    private var editMode = false
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         view.backgroundColor = .white
-        
-        
         
         setupNavigationBar()
         
@@ -29,8 +27,8 @@ final class TaskListViewController: UITableViewController {
         storageManager.readData()
     }
     
- 
-
+    
+    
     @objc private func addNewTask() {
         showAlert(withTitle: "New Task", andMessage: "What would you like to do?")
     }
@@ -45,14 +43,10 @@ final class TaskListViewController: UITableViewController {
         )
         
         storageManager.updateData()
-        
-        dismiss(animated: true)
     }
     
     private func edit(_ taskName: String) {
-        guard let indexPath = tableView.indexPathForSelectedRow else { return }
-        
-        storageManager.taskList[indexPath.row].title = taskName
+        storageManager.taskList[selectedIndex].title = taskName
         storageManager.updateData()
         tableView.reloadData()
     }
@@ -92,7 +86,7 @@ final class TaskListViewController: UITableViewController {
         present(alert, animated: true)
         tableView.isEditing = false
     }
-
+    
 }
 
 // MARK: - UITableViewDataSource
@@ -133,7 +127,6 @@ extension TaskListViewController {
 }
 
 
-
 // MARK: - Setup UI
 private extension TaskListViewController {
     func setupNavigationBar() {
@@ -157,4 +150,3 @@ private extension TaskListViewController {
         navigationController?.navigationBar.tintColor = .white
     }
 }
-
