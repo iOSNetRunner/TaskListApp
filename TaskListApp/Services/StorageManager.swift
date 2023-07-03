@@ -10,7 +10,7 @@ import CoreData
 final class StorageManager {
     static let shared = StorageManager()
     
-    var taskList: [Task] = []
+    
     var persistentContainer: NSPersistentContainer = {
         
         let container = NSPersistentContainer(name: "TaskListApp")
@@ -22,26 +22,13 @@ final class StorageManager {
         return container
     }()
     
-    func createData(with taskName: String) {
-        let context = persistentContainer.viewContext
-        let task = Task(context: context)
-        task.title = taskName
-        taskList.append(task)
+    var context: NSManagedObjectContext {
+        persistentContainer.viewContext
     }
     
-    func readData() {
-        let context = persistentContainer.viewContext
-        let fetchRequest = Task.fetchRequest()
-        
-        do {
-            taskList = try context.fetch(fetchRequest)
-        } catch {
-            
-        }
-    }
+    private init () {}
     
-    func updateData() {
-        let context = persistentContainer.viewContext
+    func saveContext() {
         if context.hasChanges {
             do {
                 try context.save()
@@ -53,19 +40,26 @@ final class StorageManager {
         }
     }
     
-    func deleteData(for selectedTask: Task) {
-        let context = persistentContainer.viewContext
-        context.delete(selectedTask)
-        if context.hasChanges {
-            do {
-                try context.save()
-                print("Task successfully removed!")
-            } catch {
-                print(error)
-            }
-        }
+    func createData(with taskName: String) -> Task {
+        let task = Task(context: context)
+        task.title = taskName
+        saveContext()
+        return task
     }
     
-    private init () {}
+    func readData() -> NSFetchRequest<Task> {
+        let fetchRequest = Task.fetchRequest()
+        return fetchRequest
+    }
     
+    func updateData(for selectedTask: Task, with title: String) {
+        selectedTask.title = title
+        saveContext()
+    }
+    
+    
+    func deleteData(for selectedTask: Task) {
+        context.delete(selectedTask)
+        saveContext()
+    }
 }

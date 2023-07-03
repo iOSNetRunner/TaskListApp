@@ -12,8 +12,8 @@ final class TaskListViewController: UITableViewController {
     private let cellID = "task"
     
     private let storageManager = StorageManager.shared
-    private let viewContext = StorageManager.shared.persistentContainer.viewContext
     private var selectedIndex: Int!
+    private var taskList: [Task] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -23,7 +23,7 @@ final class TaskListViewController: UITableViewController {
         
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellID)
         
-        storageManager.readData()
+        fetchData()
     }
     
     
@@ -32,22 +32,35 @@ final class TaskListViewController: UITableViewController {
         showAlert(withTitle: "New Task", andMessage: "What would you like to do?")
     }
     
+    private func fetchData() {
+        do {
+            taskList = try storageManager.context.fetch(
+                storageManager.readData()
+            )
+        }
+        catch {
+            
+        }
+        
+    }
     
     private func save(_ taskName: String) {
-        storageManager.createData(with: taskName)
+        let newTask = storageManager.createData(with: taskName)
+        taskList.append(newTask)
         
         tableView.insertRows(
-            at: [IndexPath(row: StorageManager.shared.taskList.count - 1, section: 0)],
-            with: .automatic
-        )
-        
-        storageManager.updateData()
+            at: [IndexPath(row: taskList.count - 1, section: 0)],
+            with: .automatic)
     }
     
     private func edit(_ taskName: String) {
-        storageManager.taskList[selectedIndex].title = taskName
-        storageManager.updateData()
-        tableView.reloadData()
+        storageManager.updateData(
+            for: taskList[selectedIndex],
+            with: taskName)
+        
+        tableView.reloadRows(
+            at: [IndexPath(row: selectedIndex, section: 0)],
+            with: .automatic)
     }
     
     
@@ -76,7 +89,7 @@ final class TaskListViewController: UITableViewController {
         } else {
             alert.addAction(editAction)
             alert.addTextField { [unowned self] textfield in
-                textfield.text = storageManager.taskList[selectedIndex].title
+                textfield.text = taskList[selectedIndex].title
             }
         }
         
@@ -91,12 +104,12 @@ final class TaskListViewController: UITableViewController {
 // MARK: - UITableViewDataSource
 extension TaskListViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        storageManager.taskList.count
+        taskList.count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellID, for: indexPath)
-        let task = storageManager.taskList[indexPath.row]
+        let task = taskList[indexPath.row]
         
         var content = cell.defaultContentConfiguration()
         content.text = task.title
@@ -110,14 +123,10 @@ extension TaskListViewController {
         showAlert(withTitle: "Update Task", andMessage: "Edit your selected task")
     }
     
-    override func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {
-        .delete
-    }
-    
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if tableView.isEditing {
             tableView.beginUpdates()
-            let objectToDelete = storageManager.taskList.remove(at: indexPath.row)
+            let objectToDelete = taskList.remove(at: indexPath.row)
             storageManager.deleteData(for: objectToDelete)
             tableView.deleteRows(at: [indexPath], with: .automatic)
             tableView.endUpdates()
