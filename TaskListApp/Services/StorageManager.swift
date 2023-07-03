@@ -32,7 +32,7 @@ final class StorageManager {
         if context.hasChanges {
             do {
                 try context.save()
-                print("Task successfuly saved!")
+                print("CoreData: operation successful")
             } catch {
                 let nserror = error as NSError
                 fatalError("Unresolved error \(nserror), \(nserror.userInfo)")

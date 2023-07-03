@@ -124,12 +124,10 @@ extension TaskListViewController {
     }
     
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if tableView.isEditing {
-            tableView.beginUpdates()
+        if editingStyle == .delete {
             let objectToDelete = taskList.remove(at: indexPath.row)
             storageManager.deleteData(for: objectToDelete)
             tableView.deleteRows(at: [indexPath], with: .automatic)
-            tableView.endUpdates()
         }
     }
 }
