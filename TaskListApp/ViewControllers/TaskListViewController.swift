@@ -33,24 +33,26 @@ final class TaskListViewController: UITableViewController {
     }
     
     private func fetchData() {
-        do {
-            taskList = try storageManager.context.fetch(
-                storageManager.readData()
-            )
+        storageManager.readData { [unowned self] result in
+            switch result {
+            case .success(let fetchedTasks):
+                taskList = fetchedTasks
+                print("ViewController: data fetched successfully")
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
         }
-        catch {
-            
-        }
-        
     }
     
     private func save(_ taskName: String) {
-        let newTask = storageManager.createData(with: taskName)
-        taskList.append(newTask)
-        
-        tableView.insertRows(
-            at: [IndexPath(row: taskList.count - 1, section: 0)],
-            with: .automatic)
+        storageManager.createData(with: taskName) { [unowned self] task in
+            
+            taskList.append(task)
+            
+            tableView.insertRows(
+                at: [IndexPath(row: taskList.count - 1, section: 0)],
+                with: .automatic)
+        }
     }
     
     private func edit(_ taskName: String) {

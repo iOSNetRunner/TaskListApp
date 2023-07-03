@@ -10,8 +10,8 @@ import CoreData
 final class StorageManager {
     static let shared = StorageManager()
     
-    
-    var persistentContainer: NSPersistentContainer = {
+    //MARK: - Core Data Stack
+    private let persistentContainer: NSPersistentContainer = {
         
         let container = NSPersistentContainer(name: "TaskListApp")
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
@@ -22,16 +22,18 @@ final class StorageManager {
         return container
     }()
     
-    var context: NSManagedObjectContext {
-        persistentContainer.viewContext
+    private let viewContext: NSManagedObjectContext
+    
+    private init () {
+        viewContext = persistentContainer.viewContext
     }
     
-    private init () {}
     
+    //MARK: - Core Data Saving Support
     func saveContext() {
-        if context.hasChanges {
+        if viewContext.hasChanges {
             do {
-                try context.save()
+                try viewContext.save()
                 print("CoreData: operation successful")
             } catch {
                 let nserror = error as NSError
@@ -40,16 +42,26 @@ final class StorageManager {
         }
     }
     
-    func createData(with taskName: String) -> Task {
-        let task = Task(context: context)
+    
+    //MARK: - CRUD Methods
+    func createData(with taskName: String, completion: (Task) -> Void) {
+        let task = Task(context: viewContext)
         task.title = taskName
+        completion(task)
         saveContext()
-        return task
+        
     }
     
-    func readData() -> NSFetchRequest<Task> {
+    func readData(completion: (Result<[Task], Error>) -> Void) {
         let fetchRequest = Task.fetchRequest()
-        return fetchRequest
+        
+        do {
+            let tasks = try viewContext.fetch(fetchRequest)
+            completion(.success(tasks))
+            print("CoreData: read successful")
+        } catch {
+            completion(.failure(error))
+        }
     }
     
     func updateData(for selectedTask: Task, with title: String) {
@@ -59,7 +71,7 @@ final class StorageManager {
     
     
     func deleteData(for selectedTask: Task) {
-        context.delete(selectedTask)
+        viewContext.delete(selectedTask)
         saveContext()
     }
 }
